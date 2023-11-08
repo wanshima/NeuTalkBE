@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>{{ thread.title }}</h1>
+  <p>{{ thread.content }}</p>
+
+  <h2>Posts</h2>
+  <ul>
+    {% for post in thread.post_set.all %}
+      <li>{{ post.content }}</li>
+    {% empty %}
+      <li>No posts available for this thread.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
