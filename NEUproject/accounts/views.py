@@ -2,7 +2,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .serializers import UserSerializer
+from django.contrib.auth.decorators import login_required
 import random
+
 
 @api_view(['POST'])
 def register_user(request):
@@ -45,12 +47,12 @@ def user_login(request):
         # return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         if user:
             token, _ = Token.objects.get_or_create(user=user)
-            random_userid = str(random.randint(10000000, 99999999))
+            # random_userid = str(random.randint(10000000, 99999999))
         
         # Return the username and random_userid
             response_data = {
                 'username': user.username,
-                'userid': random_userid,
+                # 'userid': random_userid,
                 'token': token.key,
             }
 
@@ -73,3 +75,15 @@ def user_logout(request):
             return Response({'message': 'Successfully logged out.'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@login_required(login_url='/api/login/')
+def create_post(request):
+    # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
+    if request.method == 'POST':
+        content = request.data.get('content')
+        print(content)
+        # return redirect('thread_detail', pk=thread_id)
+        response_data = {"result": content}
+        return Response(response_data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
