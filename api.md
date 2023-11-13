@@ -63,7 +63,7 @@ fail (user exists)
 
 #### 3.Logout
 
-**POST /user/logout**
+**POST /api/logout**
 
 ###### request
 
