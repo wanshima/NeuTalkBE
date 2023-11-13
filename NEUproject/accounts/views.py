@@ -30,35 +30,45 @@ def user_login(request):
         username = request.data.get('username')
         password = request.data.get('password')
 
-        user = None
-        # if '@' in username:
-        #     try:
-        #         user = CustomUser.objects.get(email=username)
-        #     except ObjectDoesNotExist:
-        #         pass
+        # Authenticate the user
+        user = authenticate(username=username, password=password)
 
-        if not user:
-            user = authenticate(username=username, password=password)
-
-        # if user:
-        #     token, _ = Token.objects.get_or_create(user=user)
-        #     return Response({'token': token.key}, status=status.HTTP_200_OK)
-
-        # return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        # Check if authentication is successful
         if user:
             token, _ = Token.objects.get_or_create(user=user)
-            # random_userid = str(random.randint(10000000, 99999999))
         
-        # Return the username and random_userid
             response_data = {
                 'username': user.username,
-                # 'userid': random_userid,
                 'token': token.key,
             }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            # If authentication fails
+            return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response(response_data, status=status.HTTP_200_OK)
+    # If the request method is not POST
+    return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+# def user_login(request):
+#     if request.method == 'POST':
+#         username = request.data.get('username')
+#         password = request.data.get('password')
 
-    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+#         user = None
+
+#         if not user:
+#             user = authenticate(username=username, password=password)
+
+#         if user:
+#             token, _ = Token.objects.get_or_create(user=user)
+        
+#             response_data = {
+#                 'username': user.username,
+#                 'token': token.key,
+#             }
+
+#         return Response(response_data, status=status.HTTP_200_OK)
+
+#     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -79,11 +89,23 @@ def user_logout(request):
 @api_view(['POST'])
 @login_required(login_url='/api/login/')
 def create_post(request):
-    # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
     if request.method == 'POST':
         content = request.data.get('content')
+
+        # Check if content is provided and is valid
+        if content is None or content.strip() == '':
+            return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+
         print(content)
-        # return redirect('thread_detail', pk=thread_id)
         response_data = {"result": content}
         return Response(response_data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+# def create_post(request):
+#     # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
+#     if request.method == 'POST':
+#         content = request.data.get('content')
+#         print(content)
+#         # return redirect('thread_detail', pk=thread_id)
+#         response_data = {"result": content}
+#         return Response(response_data, status=status.HTTP_200_OK)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
