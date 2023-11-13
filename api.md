@@ -100,6 +100,8 @@ success
 ###### request
 
 Content-Type: application/json
+
+###### header
 Authorization: Token <your-token>
 
 ```json
