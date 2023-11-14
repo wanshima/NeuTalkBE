@@ -172,24 +172,25 @@ def thread_list(request):
     start_date = request.query_params.get('start_date')
     end_date = request.query_params.get('end_date')
 
-    # Start with all posts
-    queryset = Post.objects.all()
-
-    # Filter by author name if provided
     if author_name:
-        queryset = queryset.filter(author__username=author_name)
+        if not Post.objects.filter(author__username=author_name).exists():
+            return Response({"error": "Author not found"}, status=status.HTTP_404_NOT_FOUND)
+        queryset = Post.objects.filter(author__username=author_name)
+    else:
+        queryset = Post.objects.all()
 
-    # Filter by start date if provided
     if start_date:
-        start_date = parse_datetime(start_date)
-        queryset = queryset.filter(created_at__gte=start_date)
+        parsed_start_date = parse_datetime(start_date)
+        if parsed_start_date is None:
+            return Response({"error": "Invalid start date format"}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = queryset.filter(created_at__gte=parsed_start_date)
 
-    # Filter by end date if provided
     if end_date:
-        end_date = parse_datetime(end_date)
-        queryset = queryset.filter(created_at__lte=end_date)
+        parsed_end_date = parse_datetime(end_date)
+        if parsed_end_date is None:
+            return Response({"error": "Invalid end date format"}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = queryset.filter(created_at__lte=parsed_end_date)
 
-    # Serialize the queryset
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
