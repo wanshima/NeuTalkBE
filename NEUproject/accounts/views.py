@@ -147,11 +147,23 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Post
 
-@api_view(['GET'])
+@api_view(['GET','POST'])
 # @login_required(login_url='/api/login/')
 def get_post_detail(request, post_id):
     # Fetch the post by ID
     post = get_object_or_404(Post, post_id=post_id)
+
+    if request.method == 'POST':
+        comment_data = request.data
+        comment_data['post'] = post_id  # Associate the comment with the post
+        comment_data['author'] = request.user.id  # Set the author of the comment
+        comment_serializer = CommentSerializer(data=comment_data)
+        if comment_serializer.is_valid():
+            comment_serializer.save()
+            return Response(comment_serializer.data, status=201)
+        else:
+            return Response(comment_serializer.errors, status=400)
+
     serializer = PostSerializer(post)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
