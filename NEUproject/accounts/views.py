@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .serializers import UserSerializer
 from django.contrib.auth.decorators import login_required
-import random
 
 
 @api_view(['POST'])
@@ -86,20 +85,52 @@ def user_logout(request):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# @api_view(['POST'])
+# @login_required(login_url='/api/login/')
+# def create_post(request):
+#     if request.method == 'POST':
+#         title = request.data.get('title')
+#         content = request.data.get('content')
+
+#         # Check if content is provided and is valid
+#         if title is None or title.strip() == '':
+#             return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
+#         if content is None or content.strip() == '':
+#             return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         print(title, content)
+#         response_data = {"title": title, "content": content}
+#         return Response(response_data, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from .models import Post
+from .serializers import PostSerializer
+
 @api_view(['POST'])
-@login_required(login_url='/api/login/')
+@permission_classes([IsAuthenticated])
 def create_post(request):
     if request.method == 'POST':
+        title = request.data.get('title')
         content = request.data.get('content')
 
         # Check if content is provided and is valid
+        if title is None or title.strip() == '':
+            return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
         if content is None or content.strip() == '':
             return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        print(content)
-        response_data = {"result": content}
-        return Response(response_data, status=status.HTTP_200_OK)
-        
+        # Create a new Post instance and save it to the database
+        post = Post(title=title, content=content, author=request.user, created_at=timezone.now())
+        post.save()
+
+        # Serialize the new post
+        serializer = PostSerializer(post)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 # def create_post(request):
 #     # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
 #     if request.method == 'POST':
@@ -109,3 +140,56 @@ def create_post(request):
 #         response_data = {"result": content}
 #         return Response(response_data, status=status.HTTP_200_OK)
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Post
+
+@api_view(['GET'])
+# @login_required(login_url='/api/login/')
+def get_post_detail(request, post_id):
+    # Fetch the post by ID
+    post = get_object_or_404(Post, post_id=post_id)
+    serializer = PostSerializer(post)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.dateparse import parse_datetime
+from .models import Post
+from .serializers import PostSerializer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def thread_list(request):
+    # Get query parameters
+    author_name = request.query_params.get('author_name')
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
+
+    # Start with all posts
+    queryset = Post.objects.all()
+
+    # Filter by author name if provided
+    if author_name:
+        queryset = queryset.filter(author__username=author_name)
+
+    # Filter by start date if provided
+    if start_date:
+        start_date = parse_datetime(start_date)
+        queryset = queryset.filter(created_at__gte=start_date)
+
+    # Filter by end date if provided
+    if end_date:
+        end_date = parse_datetime(end_date)
+        queryset = queryset.filter(created_at__lte=end_date)
+
+    # Serialize the queryset
+    serializer = PostSerializer(queryset, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+

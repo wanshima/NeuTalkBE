@@ -14,3 +14,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+from rest_framework import serializers
+from .models import Post  # Ensure Post model is correctly imported
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['post_id', 'title', 'content', 'author', 'created_at']  # Adjust fields as necessary
