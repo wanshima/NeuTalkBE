@@ -146,7 +146,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Post
-
+from .serializers import PostSerializer, CommentSerializer
 @api_view(['GET','POST'])
 # @login_required(login_url='/api/login/')
 def get_post_detail(request, post_id):

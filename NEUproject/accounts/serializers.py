@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser
+from .models import Post, Comment
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +23,8 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['post_id', 'title', 'content', 'author', 'created_at']  # Adjust fields as necessary
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['post_id', 'content', 'author', 'created_at']
