@@ -160,9 +160,9 @@ def get_post_detail(request, post_id):
         comment_serializer = CommentSerializer(data=comment_data)
         if comment_serializer.is_valid():
             comment_serializer.save()
-            return Response(comment_serializer.data, status=201)
+            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return Response(comment_serializer.errors, status=400)
+            return Response({"error": "Post not found"}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = PostSerializer(post)
     return Response(serializer.data, status=status.HTTP_200_OK)
