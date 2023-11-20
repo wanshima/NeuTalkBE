@@ -148,7 +148,6 @@ from rest_framework import status
 from .models import Post
 from .serializers import PostSerializer, CommentSerializer
 @api_view(['GET','POST'])
-# @login_required(login_url='/api/login/')
 def get_post_detail(request, post_id):
     # Fetch the post by ID
     post = get_object_or_404(Post, post_id=post_id)
@@ -180,29 +179,29 @@ from .serializers import PostSerializer
 @permission_classes([IsAuthenticated])
 def thread_list(request):
     # Get query parameters
-    author_name = request.query_params.get('author_name')
-    start_date = request.query_params.get('start_date')
-    end_date = request.query_params.get('end_date')
+    # author_name = request.query_params.get('author_name')
+    # start_date = request.query_params.get('start_date')
+    # end_date = request.query_params.get('end_date')
 
-    if author_name:
-        if not Post.objects.filter(author__username=author_name).exists():
-            return Response({"error": "Author not found"}, status=status.HTTP_404_NOT_FOUND)
-        queryset = Post.objects.filter(author__username=author_name)
-    else:
-        queryset = Post.objects.all()
+    # if author_name:
+    #     if not Post.objects.filter(author__username=author_name).exists():
+    #         return Response({"error": "Author not found"}, status=status.HTTP_404_NOT_FOUND)
+    #     queryset = Post.objects.filter(author__username=author_name)
+    # else:
+    #     queryset = Post.objects.all()
 
-    if start_date:
-        parsed_start_date = parse_datetime(start_date)
-        if parsed_start_date is None:
-            return Response({"error": "Invalid start date format"}, status=status.HTTP_400_BAD_REQUEST)
-        queryset = queryset.filter(created_at__gte=parsed_start_date)
+    # if start_date:
+    #     parsed_start_date = parse_datetime(start_date)
+    #     if parsed_start_date is None:
+    #         return Response({"error": "Invalid start date format"}, status=status.HTTP_400_BAD_REQUEST)
+    #     queryset = queryset.filter(created_at__gte=parsed_start_date)
 
-    if end_date:
-        parsed_end_date = parse_datetime(end_date)
-        if parsed_end_date is None:
-            return Response({"error": "Invalid end date format"}, status=status.HTTP_400_BAD_REQUEST)
-        queryset = queryset.filter(created_at__lte=parsed_end_date)
-
+    # if end_date:
+    #     parsed_end_date = parse_datetime(end_date)
+    #     if parsed_end_date is None:
+    #         return Response({"error": "Invalid end date format"}, status=status.HTTP_400_BAD_REQUEST)
+    #     queryset = queryset.filter(created_at__lte=parsed_end_date)
+    queryset = Post.objects.all()
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
