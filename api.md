@@ -107,7 +107,7 @@ Authorization: Token <your-token>
 
 ```json
 {
-    "title": "Your title"
+    "title": "Your title",
     "content": "Content of the new post"
 }
 ```
