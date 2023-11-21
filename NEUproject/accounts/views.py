@@ -129,7 +129,7 @@ def create_post(request):
 
         # Serialize the new post
         serializer = PostSerializer(post)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # def create_post(request):
 #     # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
@@ -154,17 +154,36 @@ def get_post_detail(request, post_id):
 
     if request.method == 'POST':
         comment_data = request.data
-        comment_data['post'] = post_id  # Associate the comment with the post
-        comment_data['author'] = request.user.id  # Set the author of the comment
         comment_serializer = CommentSerializer(data=comment_data)
+
         if comment_serializer.is_valid():
             comment_serializer.save()
-            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
+            return Response(comment_serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Post not found"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # For GET request
+    post = Post.objects.get(pk=post_id)
     serializer = PostSerializer(post)
     return Response(serializer.data, status=status.HTTP_200_OK)
+    # if request.method == 'POST':
+    #     comment_data = request.data
+    #     # comment_data['post'] = post_id  # Associate the comment with the post
+    #     comment_data = request.data.copy()
+    #     comment_data['post'] = post_id
+    #     comment_data['author'] = request.user.id  # Set the author of the comment
+    #     comment_serializer = CommentSerializer(data=comment_data)
+    #     if comment_serializer.is_valid():
+    #         comment_serializer.save()
+    #         return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         # return Response({"error": "Post not found"}, status=status.HTTP_400_BAD_REQUEST)
+    #         return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # post_serializer = PostSerializer(post)
+    # comments_serializer = CommentSerializer(post.comments.all(), many=True)
+    # # return Response(serializer.data, status=status.HTTP_200_OK)
+    # return Response({'post': post_serializer.data, 'comments': comments_serializer.data}, status=status.HTTP_200_OK)
 
 
 from rest_framework.decorators import api_view, permission_classes

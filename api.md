@@ -170,7 +170,7 @@ success
 ```json
 {
     "HTTP Code": 200,
-    "post": "<post_id>",
+    "post_id": "<post_id>",
     "title": "Post title",
     "content": "Post content",
     "author": "<author_username>",
@@ -260,7 +260,7 @@ success
     "HTTP Code": 200,
     "threads": [
         {   
-            "post": "<post_id>",
+            "post_id": "<post_id>",
             "title": "<thread_title>",
             "content": "<thread_content>",
             "author": "<author_username>",
