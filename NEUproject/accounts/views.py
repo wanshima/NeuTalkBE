@@ -111,25 +111,39 @@ from .models import Post
 from .serializers import PostSerializer
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def create_post(request):
-    if request.method == 'POST':
-        title = request.data.get('title')
-        content = request.data.get('content')
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Check if content is provided and is valid
-        if title is None or title.strip() == '':
-            return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
-        if content is None or content.strip() == '':
-            return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+    serializer = PostSerializer(data=request.data)
 
-        # Create a new Post instance and save it to the database
-        post = Post(title=title, content=content, author=request.user, created_at=timezone.now())
-        post.save()
+    if serializer.is_valid():
+        serializer.save(author=request.user)
 
-        # Serialize the new post
-        serializer = PostSerializer(post)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def create_post(request):
+#     if request.method == 'POST':
+#         title = request.data.get('title')
+#         content = request.data.get('content')
+
+#         # Check if content is provided and is valid
+#         if title is None or title.strip() == '':
+#             return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
+#         if content is None or content.strip() == '':
+#             return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Create a new Post instance and save it to the database
+#         post = Post(title=title, content=content, author=request.user, created_at=timezone.now())
+#         post.save()
+
+#         # Serialize the new post
+#         serializer = PostSerializer(post)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # def create_post(request):
 #     # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
@@ -145,45 +159,31 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post
+from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
 @api_view(['GET','POST'])
 def get_post_detail(request, post_id):
-    # Fetch the post by ID
     post = get_object_or_404(Post, post_id=post_id)
 
     if request.method == 'POST':
-        comment_data = request.data
-        comment_serializer = CommentSerializer(data=comment_data)
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        comment_data = {
+            'content': request.data.get('content'),
+            'post_id': post.post_id  
+        }
+
+        comment_serializer = CommentSerializer(data=comment_data, context={'request': request})
 
         if comment_serializer.is_valid():
-            comment_serializer.save()
+            comment_serializer.save(author=request.user)  # Save with author
             return Response(comment_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # For GET request
-    post = Post.objects.get(pk=post_id)
     serializer = PostSerializer(post)
     return Response(serializer.data, status=status.HTTP_200_OK)
-    # if request.method == 'POST':
-    #     comment_data = request.data
-    #     # comment_data['post'] = post_id  # Associate the comment with the post
-    #     comment_data = request.data.copy()
-    #     comment_data['post'] = post_id
-    #     comment_data['author'] = request.user.id  # Set the author of the comment
-    #     comment_serializer = CommentSerializer(data=comment_data)
-    #     if comment_serializer.is_valid():
-    #         comment_serializer.save()
-    #         return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         # return Response({"error": "Post not found"}, status=status.HTTP_400_BAD_REQUEST)
-    #         return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # post_serializer = PostSerializer(post)
-    # comments_serializer = CommentSerializer(post.comments.all(), many=True)
-    # # return Response(serializer.data, status=status.HTTP_200_OK)
-    # return Response({'post': post_serializer.data, 'comments': comments_serializer.data}, status=status.HTTP_200_OK)
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -220,7 +220,7 @@ def thread_list(request):
     #     if parsed_end_date is None:
     #         return Response({"error": "Invalid end date format"}, status=status.HTTP_400_BAD_REQUEST)
     #     queryset = queryset.filter(created_at__lte=parsed_end_date)
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().order_by('-created_at')
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

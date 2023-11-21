@@ -130,7 +130,7 @@ success
     "HTTP Code": 200,
     "title": "Your title",
     "content": "Content of the new post",
-    "author": "<author_id>",
+    "author_username": "<author_username>",
     "created_at": "<creation_timestamp>"
 }
 ```
@@ -144,14 +144,13 @@ success
 
 Content-Type: application/json
 
-###### 
+###### URL Parameters
 
 'post_id'
 
 
 ###### headers
 
-Content-Type: application/json
 Authorization: Token <your-token>
 
 
@@ -173,7 +172,7 @@ success
     "post_id": "<post_id>",
     "title": "Post title",
     "content": "Post content",
-    "author": "<author_username>",
+    "author_username": "<author_username>",
     "created_at": "<creation_timestamp>"
        
 }
@@ -182,14 +181,18 @@ success
 
 Content-Type: application/json
 
-###### 
+```json
+{
+    "content": "Your comment here"
+}
+```
+###### URL Parameters
 
 'post_id'
 
 
 ###### headers
 
-Content-Type: application/json
 Authorization: Token <your-token>
 
 ###### response
@@ -198,7 +201,6 @@ fail
 ```json
 {
     "HTTP Code": 400,
-    "msg": "Post not found"
 }
 ```
 
@@ -206,9 +208,11 @@ success
 
 ```json
 {
-    "HTTP Code": 201,
-    "author": "<author_username>",
-    "comment": "Comment content",
+    "HTTP Code": 200,
+    "post_id": "6f0f5e03-6bb1-4347-85fe-258f7aaed902",
+    "content": "This is the text of the comment.",
+    "author_username": "testusernew",
+    "created_at": "2023-11-20T18:47:07.649778-08:00"
       
 }
 ```
@@ -225,7 +229,6 @@ Content-Type: application/json
 Authorization: Token <your-token>
 
 
-
 ###### response
 
 fail
@@ -240,7 +243,7 @@ fail
 
 ```json
 {
-    "HTTP Code": 201,
+    "HTTP Code": 400,
     "error": "Invalid start date format"
 }
 ```
@@ -258,15 +261,11 @@ success
 ```json
 {
     "HTTP Code": 200,
-    "threads": [
-        {   
-            "post_id": "<post_id>",
-            "title": "<thread_title>",
-            "content": "<thread_content>",
-            "author": "<author_username>",
-            "created_at": "<creation_timestamp>"
+    "post_id": "<post_id>",
+    "title": "<thread_title>",
+    "content": "<thread_content>",
+    "author_username": "<author_username>",
+    "created_at": "<creation_timestamp>"
         
-        },
-    ]
 }
 ```

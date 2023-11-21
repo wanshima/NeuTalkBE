@@ -19,12 +19,33 @@ class UserSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from .models import Post  # Ensure Post model is correctly imported
 
+# class PostSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Post
+#         fields = ['post_id', 'title', 'content', 'author', 'created_at']  # Adjust fields as necessary
 class PostSerializer(serializers.ModelSerializer):
+    author_username = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = ['post_id', 'title', 'content', 'author', 'created_at']  # Adjust fields as necessary
+        fields = ['post_id', 'title', 'content', 'author_username', 'created_at']
+
+    def get_author_username(self, obj):
+        return obj.author.username
+
+# class CommentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Comment
+#         fields = ['post_id', 'content', 'author', 'created_at']
+from .models import Comment, CustomUser
 
 class CommentSerializer(serializers.ModelSerializer):
+    author_username = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
-        fields = ['post_id', 'content', 'author', 'created_at']
+        fields = ['post_id', 'content', 'author_username', 'created_at']
+
+    def get_author_username(self, obj):
+        # obj.author will give you the CustomUser instance associated with the comment
+        return obj.author.username
