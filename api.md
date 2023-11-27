@@ -167,7 +167,8 @@ fail
 success
 
 ```json
-{
+{   
+    "HTTP Code": 200,
     "post_id": "6f0f5e03-6bb1-4347-85fe-258f7aaed902",
     "title": "Your Title",
     "content": "Your post content here",
