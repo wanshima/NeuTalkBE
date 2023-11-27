@@ -175,15 +175,21 @@ def get_post_detail(request, post_id):
         }
 
         comment_serializer = CommentSerializer(data=comment_data, context={'request': request})
-
         if comment_serializer.is_valid():
-            comment_serializer.save(author=request.user)  # Save with author
+            comment_serializer.save(author=request.user)  
             return Response(comment_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        comments = Comment.objects.filter(post_id=post_id)
+        comment_serializer = CommentSerializer(comments, many=True)
 
-    serializer = PostSerializer(post)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+        post_serializer = PostSerializer(post)
+
+        post_data_with_comments = post_serializer.data
+        post_data_with_comments['comments'] = comment_serializer.data
+
+        return Response(post_data_with_comments, status=status.HTTP_200_OK)
 
 
 from rest_framework.decorators import api_view, permission_classes

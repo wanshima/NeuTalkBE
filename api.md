@@ -168,13 +168,25 @@ success
 
 ```json
 {
-    "HTTP Code": 200,
-    "post_id": "<post_id>",
-    "title": "Post title",
-    "content": "Post content",
-    "author_username": "<author_username>",
-    "created_at": "<creation_timestamp>"
-       
+    "post_id": "6f0f5e03-6bb1-4347-85fe-258f7aaed902",
+    "title": "Your Title",
+    "content": "Your post content here",
+    "author_username": "testusernew",
+    "created_at": "2023-11-20T11:53:34.497853-08:00",
+    "comments": [
+        {
+            "post_id": "6f0f5e03-6bb1-4347-85fe-258f7aaed902",
+            "content": "This is the text of the comment.",
+            "author_username": "testuser10",
+            "created_at": "2023-11-20T12:36:01.352089-08:00"
+        },
+        {
+            "post_id": "6f0f5e03-6bb1-4347-85fe-258f7aaed902",
+            "content": "This is the text of the comment.",
+            "author_username": "testusernew",
+            "created_at": "2023-11-20T17:10:02.656917-08:00"
+        },
+    ]
 }
 ```
 ###### POST request
