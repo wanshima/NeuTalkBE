@@ -19,15 +19,8 @@ class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
-from rest_framework import serializers
-from .models import Post
-
-class PostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ['post_id', 'title', 'content', 'author', 'created_at']
-
 class Comment(models.Model):
+    unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     post_id = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
@@ -35,3 +28,8 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.post.title}'
+
+    # def save(self, *args, **kwargs):
+    #     if not self.comment_id:
+    #         self.comment_id = custom_uuid_function()  # Implement this function
+    #     super().save(*args, **kwargs)

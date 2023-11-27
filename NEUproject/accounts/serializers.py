@@ -44,7 +44,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['post_id', 'content', 'author_username', 'created_at']
+        fields = ['unique_id', 'post_id', 'content', 'author_username', 'created_at']
 
     def get_author_username(self, obj):
         # obj.author will give you the CustomUser instance associated with the comment
