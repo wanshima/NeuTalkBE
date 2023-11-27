@@ -181,7 +181,7 @@ def get_post_detail(request, post_id):
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
-        comments = Comment.objects.filter(post_id=post_id)
+        comments = Comment.objects.filter(post_id=post_id).order_by('-created_at')
         comment_serializer = CommentSerializer(comments, many=True)
 
         post_serializer = PostSerializer(post)
