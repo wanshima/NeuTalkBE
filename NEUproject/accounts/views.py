@@ -203,30 +203,59 @@ from .serializers import PostSerializer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def thread_list(request):
-    # Get query parameters
-    # author_name = request.query_params.get('author_name')
-    # start_date = request.query_params.get('start_date')
-    # end_date = request.query_params.get('end_date')
+    author_name = request.query_params.get('author_name')
+    title = request.query_params.get('title')
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
 
-    # if author_name:
-    #     if not Post.objects.filter(author__username=author_name).exists():
-    #         return Response({"error": "Author not found"}, status=status.HTTP_404_NOT_FOUND)
-    #     queryset = Post.objects.filter(author__username=author_name)
-    # else:
-    #     queryset = Post.objects.all()
+    queryset = Post.objects.all()
 
-    # if start_date:
-    #     parsed_start_date = parse_datetime(start_date)
-    #     if parsed_start_date is None:
-    #         return Response({"error": "Invalid start date format"}, status=status.HTTP_400_BAD_REQUEST)
-    #     queryset = queryset.filter(created_at__gte=parsed_start_date)
+    if author_name:
+        queryset = queryset.filter(author__username=author_name)
 
-    # if end_date:
-    #     parsed_end_date = parse_datetime(end_date)
-    #     if parsed_end_date is None:
-    #         return Response({"error": "Invalid end date format"}, status=status.HTTP_400_BAD_REQUEST)
-    #     queryset = queryset.filter(created_at__lte=parsed_end_date)
-    queryset = Post.objects.all().order_by('-created_at')
+    if title:
+        queryset = queryset.filter(title__icontains=title)
+
+    if start_date:
+        parsed_start_date = parse_datetime(start_date)
+        if parsed_start_date:
+            queryset = queryset.filter(created_at__gte=parsed_start_date)
+
+    if end_date:
+        parsed_end_date = parse_datetime(end_date)
+        if parsed_end_date:
+            queryset = queryset.filter(created_at__lte=parsed_end_date)
+
+    queryset = queryset.order_by('-created_at')
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+from .models import Favorite
+from .serializers import FavoriteSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_to_favorites(request, post_id):
+    try:
+        post = get_object_or_404(Post, post_id=post_id)
+        Favorite.objects.get_or_create(user=request.user, post_id=post)
+        return Response({"message": "Post added to favorites"}, status=status.HTTP_200_OK)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def remove_from_favorites(request, post_id):
+    try:
+        favorite = Favorite.objects.get(user=request.user, post_id=post_id)
+        favorite.delete()
+        return Response({"message": "Post removed from favorites"}, status=status.HTTP_200_OK)
+    except Favorite.DoesNotExist:
+        return Response({"error": "Favorite not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def favorites_list(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related('post_id').order_by('-created_at')
+    serializer = FavoriteSerializer(favorites, many=True) 
+    return Response(serializer.data, status=status.HTTP_200_OK)

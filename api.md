@@ -231,12 +231,14 @@ success
 ```
 #### 6. Threads list
 
-**POST /api/threads/** 
+**GET /api/threads/** 
 
+###### Query Parameters
+'author_name'
+'title'
+'start_date' (YYYY-MM-DD)
+'end_date' (YYYY-MM-DD)
 
-###### request
-
-Content-Type: application/json
 
 ###### header
 Authorization: Token <your-token>
@@ -244,14 +246,6 @@ Authorization: Token <your-token>
 
 ###### response
 
-fail
-
-```json
-{
-    "HTTP Code": 400,
-    "error": "Author not found"
-}
-```
 fail
 
 ```json
@@ -279,6 +273,99 @@ success
     "content": "<thread_content>",
     "author_username": "<author_username>",
     "created_at": "<creation_timestamp>"
+        
+}
+```
+#### 7. Add to Favorites
+
+**POST /api/favorites/add/<uuid:post_id>/**
+
+###### URL Parameters
+
+'post_id' (UUID)
+
+###### response
+
+fail
+
+```json
+{
+    "HTTP Code": 404,
+    "error": "Post not found"
+}
+```
+success
+
+```json
+{
+    "HTTP Code": 200,
+    "message": "Post added to favorites"
+        
+}
+```
+
+#### 8. Remove from Favorites
+
+**DELETE /api/favorites/remove/<uuid:post_id>/**
+
+###### URL Parameters
+
+'post_id' (UUID)
+
+###### response
+
+fail
+
+```json
+{
+    "HTTP Code": 404,
+    "error": "Favorite not found"
+}
+```
+success
+
+```json
+{
+    "HTTP Code": 200,
+    "message": "Post removed from favorites"
+        
+}
+```
+#### 9. Favorites List
+
+**POST /api/favorites/**
+
+###### URL Parameters
+
+'post_id' (UUID)
+
+###### response
+
+```json
+{
+    "HTTP Code": 200,
+    [
+    {
+        "id": 3,
+        "post_detail": {
+            "post_id": "5d60c0a0-3865-413c-bf1f-ec23f0e2d903",
+            "title": "Your Title",
+            "content": "Your post content here",
+            "author_username": "testusernew",
+            "created_at": "2023-11-26T23:50:08.939787-08:00"
+        }
+    },
+    {
+        "id": 2,
+        "post_detail": {
+            "post_id": "0709db5c-cae7-4de6-9484-eb3bca578fe1",
+            "title": "Your Title",
+            "content": "Your post content here",
+            "author_username": "testusernew",
+            "created_at": "2023-11-27T20:26:29.209442-08:00"
+        }
+    }
+]
         
 }
 ```

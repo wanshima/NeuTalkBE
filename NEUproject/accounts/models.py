@@ -29,7 +29,10 @@ class Comment(models.Model):
     def __str__(self):
         return f'Comment by {self.author.username} on {self.post.title}'
 
-    # def save(self, *args, **kwargs):
-    #     if not self.comment_id:
-    #         self.comment_id = custom_uuid_function()  # Implement this function
-    #     super().save(*args, **kwargs)
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post_id = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta: # this is to make sure that a user can only favorite a post once
+        unique_together = ('user', 'post_id')
