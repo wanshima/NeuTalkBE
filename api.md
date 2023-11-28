@@ -235,7 +235,6 @@ success
 
 ###### Query Parameters
 'author_name'
-'title'
 'start_date' (YYYY-MM-DD)
 'end_date' (YYYY-MM-DD)
 

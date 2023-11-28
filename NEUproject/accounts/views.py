@@ -204,7 +204,7 @@ from .serializers import PostSerializer
 @permission_classes([IsAuthenticated])
 def thread_list(request):
     author_name = request.query_params.get('author_name')
-    title = request.query_params.get('title')
+    # title = request.query_params.get('title')
     start_date = request.query_params.get('start_date')
     end_date = request.query_params.get('end_date')
 
@@ -213,8 +213,8 @@ def thread_list(request):
     if author_name:
         queryset = queryset.filter(author__username=author_name)
 
-    if title:
-        queryset = queryset.filter(title__icontains=title)
+    # if title:
+    #     queryset = queryset.filter(title__icontains=title)
 
     if start_date:
         parsed_start_date = parse_datetime(start_date)
