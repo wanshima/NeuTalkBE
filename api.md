@@ -281,7 +281,7 @@ success
 
 ###### URL Parameters
 
-'post_id' (UUID)
+'post_id' 
 
 ###### response
 
@@ -309,7 +309,7 @@ success
 
 ###### URL Parameters
 
-'post_id' (UUID)
+'post_id'
 
 ###### response
 
@@ -332,11 +332,7 @@ success
 ```
 #### 9. Favorites List
 
-**POST /api/favorites/**
-
-###### URL Parameters
-
-'post_id' (UUID)
+**GET /api/favorites/**
 
 ###### response
 
@@ -368,3 +364,44 @@ success
         
 }
 ```
+#### 9. Delete Post
+
+**DELETE /api/posts/delete/<uuid:post_id>/**
+
+###### URL Parameters
+
+'post_id' 
+
+###### header
+Authorization: Token <your-token>
+
+###### response
+
+fail
+
+```json
+{
+    "HTTP Code": 404,
+    "error": "Post not found"
+}
+```
+
+fail
+
+```json
+{
+    "HTTP Code": 403,
+    "error": "You do not have permission to delete this post"
+}
+```
+
+success
+
+```json
+{
+    "HTTP Code": 204,
+    "message": "Post deleted successfully"
+        
+}
+```
+        

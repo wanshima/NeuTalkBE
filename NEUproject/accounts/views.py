@@ -1,9 +1,18 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .serializers import UserSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_datetime
 
+
+from .models import CustomUser, Post, Comment, Favorite
+from .serializers import PostSerializer, UserSerializer, FavoriteSerializer, CommentSerializer
 
 @api_view(['POST'])
 def register_user(request):
@@ -14,14 +23,7 @@ def register_user(request):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'error': 'A user with that username name is already registered'}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.exceptions import ObjectDoesNotExist
 
-from .models import CustomUser
 
 @api_view(['POST'])
 def user_login(request):
@@ -47,32 +49,7 @@ def user_login(request):
 
     # If the request method is not POST
     return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
-# def user_login(request):
-#     if request.method == 'POST':
-#         username = request.data.get('username')
-#         password = request.data.get('password')
 
-#         user = None
-
-#         if not user:
-#             user = authenticate(username=username, password=password)
-
-#         if user:
-#             token, _ = Token.objects.get_or_create(user=user)
-        
-#             response_data = {
-#                 'username': user.username,
-#                 'token': token.key,
-#             }
-
-#         return Response(response_data, status=status.HTTP_200_OK)
-
-#     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -85,30 +62,6 @@ def user_logout(request):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# @api_view(['POST'])
-# @login_required(login_url='/api/login/')
-# def create_post(request):
-#     if request.method == 'POST':
-#         title = request.data.get('title')
-#         content = request.data.get('content')
-
-#         # Check if content is provided and is valid
-#         if title is None or title.strip() == '':
-#             return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
-#         if content is None or content.strip() == '':
-#             return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         print(title, content)
-#         response_data = {"title": title, "content": content}
-#         return Response(response_data, status=status.HTTP_200_OK)
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils import timezone
-from .models import Post
-from .serializers import PostSerializer
 
 @api_view(['POST'])
 def create_post(request):
@@ -124,47 +77,15 @@ def create_post(request):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def create_post(request):
-#     if request.method == 'POST':
-#         title = request.data.get('title')
-#         content = request.data.get('content')
 
-#         # Check if content is provided and is valid
-#         if title is None or title.strip() == '':
-#             return Response({"error": "Title is required"}, status=status.HTTP_400_BAD_REQUEST)
-#         if content is None or content.strip() == '':
-#             return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Create a new Post instance and save it to the database
-#         post = Post(title=title, content=content, author=request.user, created_at=timezone.now())
-#         post.save()
-
-#         # Serialize the new post
-#         serializer = PostSerializer(post)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# def create_post(request):
-#     # thread = Thread.objects.get(pk=thread_id)怎么判断有没有login
-#     if request.method == 'POST':
-#         content = request.data.get('content')
-#         print(content)
-#         # return redirect('thread_detail', pk=thread_id)
-#         response_data = {"result": content}
-#         return Response(response_data, status=status.HTTP_200_OK)
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Post, Comment
-from .serializers import PostSerializer, CommentSerializer
 @api_view(['GET','POST'])
 def get_post_detail(request, post_id):
     post = get_object_or_404(Post, post_id=post_id)
+    is_favorite = False
 
+    if request.user.is_authenticated:
+        is_favorite = Favorite.objects.filter(user=request.user, post_id=post_id).exists()
+        
     if request.method == 'POST':
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -183,22 +104,24 @@ def get_post_detail(request, post_id):
     else:
         comments = Comment.objects.filter(post_id=post_id).order_by('-created_at')
         comment_serializer = CommentSerializer(comments, many=True)
-
         post_serializer = PostSerializer(post)
 
         post_data_with_comments = post_serializer.data
         post_data_with_comments['comments'] = comment_serializer.data
+        post_data_with_comments['is_favorite'] = is_favorite
 
         return Response(post_data_with_comments, status=status.HTTP_200_OK)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, post_id=post_id)
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.dateparse import parse_datetime
-from .models import Post
-from .serializers import PostSerializer
+    if post.author != request.user:
+        return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+
+    post.delete()
+    return Response({"message": "Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -226,8 +149,6 @@ def thread_list(request):
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-from .models import Favorite
-from .serializers import FavoriteSerializer
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
