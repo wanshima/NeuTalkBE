@@ -121,7 +121,7 @@ def delete_post(request, post_id):
         return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
 
     post.delete()
-    return Response({"message": "Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

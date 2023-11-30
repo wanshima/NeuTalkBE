@@ -399,7 +399,7 @@ success
 
 ```json
 {
-    "HTTP Code": 204,
+    "HTTP Code": 200,
     "message": "Post deleted successfully"
         
 }
