@@ -9,8 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_datetime
-
-
 from .models import CustomUser, Post, Comment, Favorite
 from .serializers import PostSerializer, UserSerializer, FavoriteSerializer, CommentSerializer
 
@@ -30,24 +28,16 @@ def user_login(request):
     if request.method == 'POST':
         username = request.data.get('username')
         password = request.data.get('password')
-
-        # Authenticate the user
         user = authenticate(username=username, password=password)
-
-        # Check if authentication is successful
         if user:
             token, _ = Token.objects.get_or_create(user=user)
-        
             response_data = {
                 'username': user.username,
                 'token': token.key,
             }
             return Response(response_data, status=status.HTTP_200_OK)
         else:
-            # If authentication fails
             return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # If the request method is not POST
     return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -56,7 +46,6 @@ def user_login(request):
 def user_logout(request):
     if request.method == 'POST':
         try:
-            # Delete the user's token to logout
             request.user.auth_token.delete()
             return Response({'message': 'Successfully logged out.'}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -82,19 +71,15 @@ def create_post(request):
 def get_post_detail(request, post_id):
     post = get_object_or_404(Post, post_id=post_id)
     is_favorite = False
-
     if request.user.is_authenticated:
         is_favorite = Favorite.objects.filter(user=request.user, post_id=post_id).exists()
-        
     if request.method == 'POST':
         if not request.user.is_authenticated:
             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-
         comment_data = {
             'content': request.data.get('content'),
             'post_id': post.post_id  
         }
-
         comment_serializer = CommentSerializer(data=comment_data, context={'request': request})
         if comment_serializer.is_valid():
             comment_serializer.save(author=request.user)  
@@ -105,21 +90,17 @@ def get_post_detail(request, post_id):
         comments = Comment.objects.filter(post_id=post_id).order_by('-created_at')
         comment_serializer = CommentSerializer(comments, many=True)
         post_serializer = PostSerializer(post)
-
         post_data_with_comments = post_serializer.data
         post_data_with_comments['comments'] = comment_serializer.data
         post_data_with_comments['is_favorite'] = is_favorite
-
         return Response(post_data_with_comments, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_post(request, post_id):
     post = get_object_or_404(Post, post_id=post_id)
-
     if post.author != request.user:
         return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
-
     post.delete()
     return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
 
@@ -129,22 +110,17 @@ def thread_list(request):
     author_name = request.query_params.get('author_name')
     start_date = request.query_params.get('start_date')
     end_date = request.query_params.get('end_date')
-
     queryset = Post.objects.all()
-
     if author_name:
         queryset = queryset.filter(author__username=author_name)
-
     if start_date:
         parsed_start_date = parse_datetime(start_date)
         if parsed_start_date:
             queryset = queryset.filter(created_at__gte=parsed_start_date)
-
     if end_date:
         parsed_end_date = parse_datetime(end_date)
         if parsed_end_date:
             queryset = queryset.filter(created_at__lte=parsed_end_date)
-
     queryset = queryset.order_by('-created_at')
     serializer = PostSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)

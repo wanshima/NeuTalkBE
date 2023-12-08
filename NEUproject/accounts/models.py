@@ -1,16 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+import uuid
 
 class CustomUser(AbstractUser):
-
-    # Add custom fields here, if needed
-
     def __str__(self):
         return self.username
-
-from django.db import models
-import uuid
 
 class Post(models.Model):
     post_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -34,5 +29,5 @@ class Favorite(models.Model):
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta: # this is to make sure that a user can only favorite a post once
+    class Meta: 
         unique_together = ('user', 'post_id')
